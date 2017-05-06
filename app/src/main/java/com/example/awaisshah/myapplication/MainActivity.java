@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private FaceServiceClient faceServiceClient =
             new FaceServiceRestClient("2b72ded620924d3f939549773ee9dd7d");
     private final int PICK_IMAGE = 1;
+    private static final int CAMERA_REQUEST = 1888;
     private ProgressDialog detectionProgressDialog;
     Face[] resultant;
 
@@ -32,12 +33,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button button1 = (Button) findViewById(R.id.button1);
+
         button1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                gallIntent.setType("image/*");
-                startActivityForResult(Intent.createChooser(gallIntent, "Select Picture"), PICK_IMAGE);
+            /*    Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                gallIntent.setType("image*//*");
+                startActivityForResult(Intent.createChooser(gallIntent, "Select Picture"), PICK_IMAGE);*/
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_REQUEST);
 
             }
         });
@@ -48,12 +52,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+
             Uri uri = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
                 ImageView imageView = (ImageView) findViewById(R.id.imageView1);
-                imageView.setImageBitmap(bitmap);
+                imageView.setImageResource(R.drawable.img);
                 detectAndFrame(bitmap);
                 drawFaceRectanglesOnBitmap(bitmap,resultant);
 
@@ -117,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
 
 // Write a message to the database
                         FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference myRef = database.getReference("message");
+                        DatabaseReference myRef = database.getReference("users");
 
                         myRef.setValue(result[0]);
                         resultant = result;
